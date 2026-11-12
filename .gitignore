@@ -1,0 +1,10 @@
+# personal settings and local data
+local_settings.py
+radar.sqlite
+reports/
+*.log
+
+# python
+__pycache__/
+*.pyc
+.venv/
