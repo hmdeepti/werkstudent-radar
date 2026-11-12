@@ -14,8 +14,28 @@ NEARBY_TOWNS = [
     "verl", "rheda", "wiedenbrueck", "wiedenbrück", "steinhagen", "werther",
     "enger", "spenge", "bad salzuflen", "detmold", "lage", "oerlinghausen",
     "schloss holte", "harsewinkel", "versmold", "borgholzhausen",
+    # about one hour by train
+    "paderborn", "minden", "bad oeynhausen", "buende", "bünde", "loehne", "löhne",
+    "lemgo", "blomberg", "hamm", "oelde", "ahlen", "lippstadt", "soest", "unna", "kamen",
+    "osnabrueck", "osnabrück", "osnabruck", "muenster", "münster", "munster",
+    "dortmund", "espelkamp", "luebbecke", "lübbecke", "hannover", "hanover",
 ]
 INCLUDE_REMOTE = True       # keep remote roles (you can do them from Bielefeld)
+
+# Extra search centres (about one hour by train). The Arbeitsagentur search runs
+# around each of them too, with its own radius. Bielefeld itself is LOCATION above.
+EXTRA_LOCATIONS = [
+    {"city": "Paderborn", "radius_km": 15},
+    {"city": "Minden", "radius_km": 15},
+    {"city": "Detmold", "radius_km": 15},     # also covers Lemgo and Blomberg
+    {"city": "Hamm", "radius_km": 15},
+    {"city": "Lippstadt", "radius_km": 10},
+    {"city": "Münster", "radius_km": 10},
+    {"city": "Osnabrück", "radius_km": 10},
+    {"city": "Dortmund", "radius_km": 10},
+    {"city": "Hannover", "radius_km": 10},    # ICE only: about 50 min, not on the Deutschlandticket
+]
+# Around the extra centres only the Preference-1 (your field) queries are run.
 
 # ---- Universities (searched EVERY day, all role types) --------------------
 # Employer-name search on the Arbeitsagentur API. Catches student assistant,
@@ -30,6 +50,12 @@ UNIVERSITIES = [
     {"name": "Universität Münster", "city": "Münster"},
     {"name": "Westfälische Wilhelms-Universität", "city": "Münster"},
     {"name": "Fachhochschule Münster", "city": "Münster"},
+    {"name": "Universität Osnabrück", "city": "Osnabrück"},
+    {"name": "Hochschule Osnabrück", "city": "Osnabrück"},
+    {"name": "Technische Universität Dortmund", "city": "Dortmund"},
+    {"name": "Fachhochschule Dortmund", "city": "Dortmund"},
+    {"name": "Hochschule Hamm-Lippstadt", "city": "Hamm"},
+    {"name": "Leibniz Universität Hannover", "city": "Hannover"},
 ]
 UNIVERSITY_RADIUS_KM = 15   # around each university's own city
 
@@ -165,6 +191,9 @@ ENGLISH_ONLY = True
 # student-assistant roles, which are always shown).
 ONLY_MY_FIELD = True
 MY_FIELD_CATEGORIES = ["ai_ml_data", "it"]
+# Also list German-written postings in your field that do not ask for German
+# (shown after the English ones as P7).
+SHOW_GERMAN_POSTINGS_IN_FIELD = True
 # Company boards: also show on-site roles in other German cities (listed last).
 INCLUDE_OTHER_CITIES = False
 

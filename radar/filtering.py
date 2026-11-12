@@ -168,12 +168,18 @@ _FIELD_DESC_TERMS = [
 ]
 
 
+def _has_padded(text, words):
+    """Like _has, but keeps the spaces around short keywords such as " ai " or " bi ",
+    so they don't match inside other words (e.g. "bi" in "Bielefeld")."""
+    return any(_norm(w)[1:-1] in text for w in words)
+
+
 def in_my_field(job):
     title = _norm(job["title"] + " " + " ".join(job.get("berufe", [])))
     for cat in config.MY_FIELD_CATEGORIES:
-        if any(_norm(w).strip() in title for w in config.CATEGORY_KEYWORDS.get(cat, [])):
+        if _has_padded(title, config.CATEGORY_KEYWORDS.get(cat, [])):
             return True
-    if _has(title, FIELD_CORE):
+    if _has_padded(title, FIELD_CORE):
         return True
     desc = _norm(_TAGS.sub(" ", job.get("description") or ""))
     return sum(1 for w in _FIELD_DESC_TERMS if _norm(w).strip() in desc) >= 3
@@ -222,8 +228,14 @@ def classify(job):
     #    University assistant roles are exempt: they are posted in German by
     #    policy even in English-speaking labs (rule 4 already drops any that ask for German).
     uni_assistant = assistant and job.get("is_university")
+    german_posting = False
     if getattr(config, "ENGLISH_ONLY", False) and job["lang"] != "en" and not uni_assistant:
-        job["priority"] = "EXCLUDE"; job["reason"] = "posting not in English"; return job
+        # Optional: keep German-written postings in your field that do NOT ask for
+        # German (rule 4 already removed those that do), listed last as P7.
+        if getattr(config, "SHOW_GERMAN_POSTINGS_IN_FIELD", False) and (werk or assistant) and in_my_field(job):
+            german_posting = True
+        else:
+            job["priority"] = "EXCLUDE"; job["reason"] = "posting not in English"; return job
     # 6. Field focus: data / AI / software only (university assistant roles always pass).
     if (getattr(config, "ONLY_MY_FIELD", False) and not in_my_field(job)
             and not (assistant and job.get("is_university"))):
@@ -246,10 +258,13 @@ def classify(job):
     # A university student/assistant role always ranks top.
     if job.get("is_university") and (assistant or werk):
         job["priority"] = "P1"
+    # German-written posting in your field without a German requirement: listed after English ones.
+    if german_posting:
+        job["priority"] = "P7"
     # On-site in another German city (company boards, only if enabled): list last.
     if job.get("mode") == "elsewhere":
         job["priority"] = "P6"
     return job
 
 
-PRIORITY_ORDER = {"P1": 0, "P2": 1, "P3": 2, "P4": 3, "P5": 4, "P6": 5, "EXCLUDE": 9}
+PRIORITY_ORDER = {"P1": 0, "P2": 1, "P3": 2, "P4": 3, "P5": 4, "P6": 5, "P7": 6, "EXCLUDE": 9}

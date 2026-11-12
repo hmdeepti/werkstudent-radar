@@ -13,6 +13,7 @@ PRIO_LABEL = {
     "P4": ("P4 · Part-time / Minijob", "#2563eb"),
     "P5": ("P5 · Semester-break full-time", "#ea580c"),
     "P6": ("P6 · On-site, other city", "#6b7280"),
+    "P7": ("P7 · German posting, no German required", "#a16207"),
 }
 
 CAT_LABEL = {

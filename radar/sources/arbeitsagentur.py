@@ -54,14 +54,18 @@ def search(was, location, radius_km, published_since_days=30, size=50, arbeitgeb
         locs = j.get("stellenlokationen") or []
         ort = None
         if locs:
-            ort = locs[0].get("ort") or locs[0].get("ortStrasse")
+            # v6 nests the town under "adresse"; older responses had it at the top level.
+            ort = ((locs[0].get("adresse") or {}).get("ort")
+                   or locs[0].get("ort") or locs[0].get("ortStrasse"))
         ref = j.get("referenznummer")
+        home = j.get("homeofficeprozent") if j.get("homeofficemoeglich") else None
         jobs.append({
             "id": ref,
             "source": "arbeitsagentur",
             "title": (j.get("stellenangebotsTitel") or "").strip(),
             "company": (j.get("firma") or "").strip(),
-            "location": ort or "",
+            "location": (ort or "") + (f" ({home}% home office)" if home else
+                                       (" (home office possible)" if j.get("homeofficemoeglich") else "")),
             "distance_km": j.get("entfernung"),
             "published": j.get("datumErsteVeroeffentlichung") or "",
             "berufe": j.get("alleBerufe") or [],

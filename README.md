@@ -16,10 +16,10 @@ I built it for my own job search in Bielefeld. As an international Master's stud
  University job pages  /    sales exclusion
 ```
 
-1. **Collects** listings from the Federal Employment Agency (Bundesagentur für Arbeit) API, the Arbeitnow API (English-speaking and remote roles), an employer search for nearby universities, direct scraping of university HiWi/SHK job pages, and **40+ company job boards** read straight from their applicant-tracking systems (Greenhouse, Lever, Ashby, Personio).
+1. **Collects** listings from the Federal Employment Agency (Bundesagentur für Arbeit) API (around Bielefeld and nine cities within about an hour by train), the Arbeitnow API (English-speaking and remote roles), an employer search for nearby universities, direct scraping of university HiWi/SHK job pages, and **40+ company job boards** read straight from their applicant-tracking systems (Greenhouse, Lever, Ashby, Personio).
 2. **Classifies** each job by field (data/AI, IT, marketing, business, retail/logistics, ...) and detects the **language the posting is written in**.
 3. **Filters** out roles that need fluent German, senior or "X years of experience" roles, unrelated degrees and sales jobs. Strong student signals (Werkstudent, Hilfskraft, Minijob, SHK/WHK) override the seniority rules. Optional focus switches keep only **English-language postings** and only **data / AI / software roles**.
-4. **Ranks** what is left into priorities: P1 student/research assistant, P2 working student in my field, P3 working student in another field, P4 part-time/Minijob, P5 semester-break jobs, P6 on-site roles in other cities.
+4. **Ranks** what is left into priorities: P1 student/research assistant, P2 working student in my field, P3 working student in another field, P4 part-time/Minijob, P5 semester-break jobs, P6 on-site roles in other cities, P7 German-written postings in my field that do not ask for German.
 5. **Remembers** every job in SQLite, so each digest shows only new postings.
 6. **Sends** an HTML digest by email and saves a copy to `reports/`.
 

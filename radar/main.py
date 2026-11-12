@@ -42,6 +42,18 @@ def collect():
                 by_id[j["id"]] = j
         n_searches += 1
         print(f"  [{i:>2}/{len(queries)}] {q:<32} -> {len(found):>3} hits (unique so far: {len(by_id)})")
+
+    # Extra centres (about one hour away): only the field queries, to keep runs short.
+    for centre in getattr(config, "EXTRA_LOCATIONS", []):
+        before = len(by_id)
+        for q in config.PREF1_QUERIES:
+            for j in arbeitsagentur.search(q, centre["city"], centre["radius_km"],
+                                           published_since_days=aa_window, size=50):
+                if j["id"] and j["id"] not in by_id:
+                    j["distance_km"] = None   # distance is from that centre, not from home
+                    by_id[j["id"]] = j
+            n_searches += 1
+        print(f"  [+] around {centre['city']:<12} ({centre['radius_km']} km) -> {len(by_id) - before:>3} new unique")
     store.set_last_run("arbeitsagentur")
 
     # --- Arbeitnow (adaptive window) --------------------------------------
@@ -142,7 +154,7 @@ def main():
     # summary breakdown
     from collections import Counter
     prios = Counter(j.get("priority") for j in shown)
-    print("Priority breakdown:", {k: prios[k] for k in ("P1", "P2", "P3", "P4", "P5", "P6") if prios.get(k)})
+    print("Priority breakdown:", {k: prios[k] for k in ("P1", "P2", "P3", "P4", "P5", "P6", "P7") if prios.get(k)})
     print("Done.")
 
 
