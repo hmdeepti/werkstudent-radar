@@ -7,6 +7,7 @@ Two jobs:
    senior/experienced, degree-required staff positions).
 2. Assign a PRIORITY (P1..P5) to the student-suitable roles, best first.
 """
+import re
 import unicodedata
 import config
 
@@ -138,13 +139,56 @@ def _looks_english(text):
     return en > de and en >= 3
 
 
+_TAGS = re.compile(r"<[^>]+>")
+_EN_TITLE = ("working student", "student assistant", "intern", "research assistant", "student job")
+
+
+def posting_language(job):
+    """'en', 'de' or 'unknown', judged by which language the posting is written in."""
+    text = _TAGS.sub(" ", job.get("description") or "")
+    t = _norm(text)
+    en = sum(t.count(h) for h in _EN_HINTS)
+    de = sum(t.count(h) for h in _DE_HINTS)
+    if en + de >= 8:
+        return "en" if en >= de else "de"
+    # Too little text: fall back to the title.
+    title = _norm(job.get("title", ""))
+    if any(s in title for s in _EN_TITLE):
+        return "en"
+    if text.strip() or "werkstudent" in title or "(m/w/d)" in title or "(w/m/d)" in title:
+        return "de"
+    return "unknown"
+
+
+# Strong data / software terms, for roles whose title doesn't name the field.
+_FIELD_DESC_TERMS = [
+    "python", " sql", "machine learning", "data analy", "data science", "data engineer",
+    "power bi", "tableau", "pandas", "deep learning", " llm", "javascript", "typescript",
+    "react", "backend", "frontend", "software development", "kuenstliche intelligenz",
+]
+
+
+def in_my_field(job):
+    title = _norm(job["title"] + " " + " ".join(job.get("berufe", [])))
+    for cat in config.MY_FIELD_CATEGORIES:
+        if any(_norm(w).strip() in title for w in config.CATEGORY_KEYWORDS.get(cat, [])):
+            return True
+    if _has(title, FIELD_CORE):
+        return True
+    desc = _norm(_TAGS.sub(" ", job.get("description") or ""))
+    return sum(1 for w in _FIELD_DESC_TERMS if _norm(w).strip() in desc) >= 3
+
+
 # ---- the priority decision ------------------------------------------------
 def classify(job):
     hay = _norm(job["title"] + " " + " ".join(job.get("berufe", [])) + " " + job.get("description", ""))
     job["category"] = categorize(job)
     job["german_level"] = german_level(job)
+    job["lang"] = posting_language(job)
 
     strong = _has(hay, STRONG_STUDENT_SIGNALS)   # werkstudent, hilfskraft, minijob, praktikum...
+    # Company-board jobs were already kept only for student titles (see company_boards.py).
+    strong = strong or job.get("source") == "company_board"
     weak = _has(hay, WEAK_STUDENT_SIGNALS)        # teilzeit / part-time only
     assistant = _has(hay, ASSISTANT_SIGNALS)
     senior = _has(hay, SENIOR_SIGNALS)
@@ -161,16 +205,29 @@ def classify(job):
     # --- exclusion rules (order matters) ---
     # 1. Senior / professional role and NOT an explicit student role -> out.
     if senior and not strong:
-        job["priority"] = "EXCLUDE"; return job
+        job["priority"] = "EXCLUDE"; job["reason"] = "senior"; return job
     # 2. Not a student-suitable role at all -> out.
     if not student_suitable:
-        job["priority"] = "EXCLUDE"; return job
+        job["priority"] = "EXCLUDE"; job["reason"] = "not a student role"; return job
     # 3. Requires a specific UNRELATED degree and isn't tech/business -> out.
     if unrelated_degree and not (field or business):
-        job["priority"] = "EXCLUDE"; return job
+        job["priority"] = "EXCLUDE"; job["reason"] = "unrelated degree"; return job
     # 4. You are at A2 German: any role that ASKS FOR German is out.
     if job["german_level"] == "high":
-        job["priority"] = "EXCLUDE"; return job
+        job["priority"] = "EXCLUDE"; job["reason"] = "asks for German"; return job
+    # 4b. No sales roles (checked on the title only, so "work with our sales team" is fine).
+    if _has(_norm(job["title"]), getattr(config, "SALES_SIGNALS", [])):
+        job["priority"] = "EXCLUDE"; job["reason"] = "sales"; return job
+    # 5. English-only mode: the posting itself must be written in English.
+    #    University assistant roles are exempt: they are posted in German by
+    #    policy even in English-speaking labs (rule 4 already drops any that ask for German).
+    uni_assistant = assistant and job.get("is_university")
+    if getattr(config, "ENGLISH_ONLY", False) and job["lang"] != "en" and not uni_assistant:
+        job["priority"] = "EXCLUDE"; job["reason"] = "posting not in English"; return job
+    # 6. Field focus: data / AI / software only (university assistant roles always pass).
+    if (getattr(config, "ONLY_MY_FIELD", False) and not in_my_field(job)
+            and not (assistant and job.get("is_university"))):
+        job["priority"] = "EXCLUDE"; job["reason"] = "not my field"; return job
 
     # --- priority assignment among student roles ---
     if assistant:                      # HiWi / SHK / WHK / (research) assistant
@@ -189,7 +246,10 @@ def classify(job):
     # A university student/assistant role always ranks top.
     if job.get("is_university") and (assistant or werk):
         job["priority"] = "P1"
+    # On-site in another German city (company boards, only if enabled): list last.
+    if job.get("mode") == "elsewhere":
+        job["priority"] = "P6"
     return job
 
 
-PRIORITY_ORDER = {"P1": 0, "P2": 1, "P3": 2, "P4": 3, "P5": 4, "EXCLUDE": 9}
+PRIORITY_ORDER = {"P1": 0, "P2": 1, "P3": 2, "P4": 3, "P5": 4, "P6": 5, "EXCLUDE": 9}

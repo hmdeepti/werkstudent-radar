@@ -16,10 +16,10 @@ I built it for my own job search in Bielefeld. As an international Master's stud
  University job pages  /    sales exclusion
 ```
 
-1. **Collects** listings from the Federal Employment Agency (Bundesagentur für Arbeit) API, the Arbeitnow API (English-speaking and remote roles), an employer search for nearby universities, and direct scraping of university HiWi/SHK job pages that never reach the national boards.
-2. **Classifies** each job by field (data/AI, IT, marketing, business, retail/logistics, ...) using keyword rules on title and description.
-3. **Filters** out roles that need fluent German, senior or "X years of experience" roles, unrelated degrees and sales jobs. Strong student signals (Werkstudent, Hilfskraft, Minijob, SHK/WHK) override the seniority rules.
-4. **Ranks** what is left into five priorities: P1 student/research assistant, P2 working student in my field, P3 working student in another field, P4 part-time/Minijob, P5 semester-break jobs.
+1. **Collects** listings from the Federal Employment Agency (Bundesagentur für Arbeit) API, the Arbeitnow API (English-speaking and remote roles), an employer search for nearby universities, direct scraping of university HiWi/SHK job pages, and **40+ company job boards** read straight from their applicant-tracking systems (Greenhouse, Lever, Ashby, Personio).
+2. **Classifies** each job by field (data/AI, IT, marketing, business, retail/logistics, ...) and detects the **language the posting is written in**.
+3. **Filters** out roles that need fluent German, senior or "X years of experience" roles, unrelated degrees and sales jobs. Strong student signals (Werkstudent, Hilfskraft, Minijob, SHK/WHK) override the seniority rules. Optional focus switches keep only **English-language postings** and only **data / AI / software roles**.
+4. **Ranks** what is left into priorities: P1 student/research assistant, P2 working student in my field, P3 working student in another field, P4 part-time/Minijob, P5 semester-break jobs, P6 on-site roles in other cities.
 5. **Remembers** every job in SQLite, so each digest shows only new postings.
 6. **Sends** an HTML digest by email and saves a copy to `reports/`.
 
@@ -29,6 +29,8 @@ A typical run looks at about 200 listings around Bielefeld and Gütersloh.
 
 - **Standard library only.** No `pip install` needed (`urllib`, `json`, `sqlite3`, `smtplib`), so the scheduled job never breaks because of a package update.
 - **Adaptive search window.** Each source remembers when it was last searched and only asks for jobs posted since then (plus one day of overlap). The first run looks back 30 days.
+- **Language detection instead of job-board filters.** Job boards' "English" filters are unreliable, so the radar reads each posting and compares common English and German words. University assistant roles are exempt, because universities post in German even for English-speaking labs.
+- **Company boards straight from the ATS.** Many startups post English working-student roles only on their own careers page. Their public Greenhouse/Lever/Ashby/Personio feeds are fetched in parallel; adding a company is one line in `config.COMPANY_BOARDS`.
 - **Configuration in one file.** Location, radius, search terms, category keywords, German-level signals and exclusions are all in `config.py`.
 - **No secrets in code.** The email password comes from an environment variable. Personal addresses go in a git-ignored `local_settings.py`.
 
@@ -37,7 +39,7 @@ A typical run looks at about 200 listings around Bielefeld and Gütersloh.
 ```
 config.py                  all settings (location, queries, filter rules, email)
 radar/main.py              orchestrator: collect -> filter -> store -> digest -> email
-radar/sources/             arbeitsagentur.py, arbeitnow.py, universities.py, uni_portals.py
+radar/sources/             arbeitsagentur.py, arbeitnow.py, universities.py, uni_portals.py, company_boards.py
 radar/filtering.py         classification and exclusion rules, priority buckets
 radar/store.py             SQLite store: seen jobs and per-source last visit
 radar/digest.py            HTML digest
@@ -75,6 +77,6 @@ Change `LOCATION`, `RADIUS_KM` and `NEARBY_TOWNS` in `config.py` to search aroun
 
 ## Ideas for next steps
 
-- More sources through company ATS feeds (Personio, softgarden, Greenhouse, Lever).
+- Discover new company boards automatically instead of keeping a hand-made list.
 - A small score per job instead of fixed buckets.
 - Using an LLM to read the full description and extract required skills and German level.

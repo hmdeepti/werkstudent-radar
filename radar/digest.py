@@ -12,6 +12,7 @@ PRIO_LABEL = {
     "P3": ("P3 · Werkstudent — other field", "#7c3aed"),
     "P4": ("P4 · Part-time / Minijob", "#2563eb"),
     "P5": ("P5 · Semester-break full-time", "#ea580c"),
+    "P6": ("P6 · On-site, other city", "#6b7280"),
 }
 
 CAT_LABEL = {
@@ -40,6 +41,9 @@ def build(jobs, meta):
         dist = j.get("distance_km")
         dist_s = f"{dist} km" if dist is not None else ""
         uni_badge = ' <span class="uni">🎓 University</span>' if j.get("is_university") else ""
+        if j.get("mode") == "remote":
+            uni_badge += ' <span class="uni">🏠 Remote</span>'
+        lang = {"en": "English posting", "de": "German posting"}.get(j.get("lang"), "")
         company = html.escape(j.get('company') or '')
         rows.append(f"""
         <tr>
@@ -47,7 +51,7 @@ def build(jobs, meta):
               <div class="sub">{company}{uni_badge}</div></td>
           <td>{html.escape(j.get('location') or '')}<div class="sub">{dist_s}</div></td>
           <td>{html.escape(CAT_LABEL.get(j.get('category'),'Other'))}</td>
-          <td>{html.escape(GERMAN_LABEL.get(j.get('german_level'),'?'))}</td>
+          <td>{html.escape(GERMAN_LABEL.get(j.get('german_level'),'?'))}<div class="sub">{lang}</div></td>
           <td><span class="tag" style="background:{color}">{html.escape(label)}</span></td>
           <td>{html.escape(j.get('published') or '')}</td>
         </tr>""")
@@ -77,7 +81,7 @@ def build(jobs, meta):
 <body><div class="wrap">
   <header>
     <h1>Werkstudent Radar — {meta['new_count']} new role(s)</h1>
-    <p>{today} · {html.escape(meta['location'])} + {meta['radius']} km · scanned {meta['queries']} searches · source: Bundesagentur fuer Arbeit</p>
+    <p>{today} · {html.escape(meta['location'])} + {meta['radius']} km · scanned {meta['queries']} searches · sources: Bundesagentur fuer Arbeit, Arbeitnow, universities, company job boards</p>
   </header>
   <table>
     <thead><tr><th>Role / Company</th><th>Location</th><th>Field</th><th>German</th><th>Priority</th><th>Posted</th></tr></thead>

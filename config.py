@@ -73,6 +73,11 @@ PREF1_QUERIES = [
     "Werkstudent Projektmanagement",
     "Working Student Data",
     "Working Student IT",
+    "Working Student",
+    "Working Student Software",
+    "Working Student AI",
+    "Working Student Python",
+    "Student Assistant",
 ]
 
 # Preference 2 = anything else you are happy to do (up to medium German, no sales).
@@ -150,6 +155,65 @@ SALES_SIGNALS = [
     "vertrieb", "sales", "aussendienst", "telemarketing", "telesales",
     "call center", "callcenter", "account manager", "kundenakquise",
     "neukundengewinnung", "cold calling", "outbound",
+]
+
+# ---- Focus switches ---------------------------------------------------------
+# ENGLISH_ONLY: drop every posting written in German (detected from its text),
+# no matter what the filters on the job board say.
+ENGLISH_ONLY = True
+# ONLY_MY_FIELD: keep only data / AI / software roles (plus university
+# student-assistant roles, which are always shown).
+ONLY_MY_FIELD = True
+MY_FIELD_CATEGORIES = ["ai_ml_data", "it"]
+# Company boards: also show on-site roles in other German cities (listed last).
+INCLUDE_OTHER_CITIES = False
+
+# ---- Company job boards (read straight from their ATS) ------------------------
+# ats: greenhouse | lever | ashby | personio. slug = the company's board name in
+# the ATS URL. Add any company whose careers page runs on one of these.
+COMPANY_BOARDS = [
+    {"company": "Celonis", "ats": "greenhouse", "slug": "celonis"},
+    {"company": "N26", "ats": "greenhouse", "slug": "n26"},
+    {"company": "Contentful", "ats": "greenhouse", "slug": "contentful"},
+    {"company": "HelloFresh", "ats": "greenhouse", "slug": "hellofresh"},
+    {"company": "SumUp", "ats": "greenhouse", "slug": "sumup"},
+    {"company": "Raisin", "ats": "greenhouse", "slug": "raisin"},
+    {"company": "Solaris", "ats": "greenhouse", "slug": "solarisbank"},
+    {"company": "commercetools", "ats": "greenhouse", "slug": "commercetools"},
+    {"company": "Helsing", "ats": "greenhouse", "slug": "helsing"},
+    {"company": "FREENOW", "ats": "greenhouse", "slug": "freenow"},
+    {"company": "Wolt", "ats": "greenhouse", "slug": "wolt"},
+    {"company": "Staffbase", "ats": "greenhouse", "slug": "staffbase"},
+    {"company": "trivago", "ats": "greenhouse", "slug": "trivago"},
+    {"company": "Flaconi", "ats": "greenhouse", "slug": "flaconi"},
+    {"company": "Grover", "ats": "greenhouse", "slug": "grover"},
+    {"company": "Isar Aerospace", "ats": "greenhouse", "slug": "isaraerospace"},
+    {"company": "Tensordyne", "ats": "greenhouse", "slug": "tensordyne"},
+    {"company": "EggAI", "ats": "greenhouse", "slug": "eggai"},
+    {"company": "GetYourGuide", "ats": "ashby", "slug": "getyourguide"},
+    {"company": "Babbel", "ats": "ashby", "slug": "babbel"},
+    {"company": "Forto", "ats": "ashby", "slug": "forto"},
+    {"company": "Choco", "ats": "ashby", "slug": "choco"},
+    {"company": "Aleph Alpha", "ats": "ashby", "slug": "alephalpha"},
+    {"company": "DeepL", "ats": "ashby", "slug": "deepl"},
+    {"company": "Parloa", "ats": "ashby", "slug": "parloa"},
+    {"company": "n8n", "ats": "ashby", "slug": "n8n"},
+    {"company": "Enpal", "ats": "ashby", "slug": "enpal"},
+    {"company": "Moss", "ats": "ashby", "slug": "moss"},
+    {"company": "Pleo", "ats": "ashby", "slug": "pleo"},
+    {"company": "Qonto", "ats": "ashby", "slug": "qonto"},
+    {"company": "Upvest", "ats": "ashby", "slug": "upvest"},
+    {"company": "Billie", "ats": "ashby", "slug": "billie"},
+    {"company": "Yepoda", "ats": "ashby", "slug": "yepoda"},
+    {"company": "Bettermile", "ats": "ashby", "slug": "bettermile"},
+    {"company": "Constructor", "ats": "ashby", "slug": "constructor"},
+    {"company": "Statista", "ats": "ashby", "slug": "statista"},
+    {"company": "Merantix", "ats": "personio", "slug": "merantix"},
+    {"company": "Personio", "ats": "personio", "slug": "personio"},
+    {"company": "Homeday", "ats": "personio", "slug": "homeday"},
+    {"company": "thermondo", "ats": "personio", "slug": "thermondo"},
+    {"company": "tado", "ats": "personio", "slug": "tado"},
+    {"company": "GENUINE", "ats": "personio", "slug": "genuine"},
 ]
 
 # ---- Email delivery (fill in to enable emailing) --------------------------

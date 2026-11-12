@@ -15,12 +15,13 @@ import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
-from radar.sources import arbeitsagentur, arbeitnow, universities, uni_portals
+from radar.sources import arbeitsagentur, arbeitnow, universities, uni_portals, company_boards
 from radar import filtering, store, digest, emailer
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "reports")
 FETCH_DESCRIPTIONS = True   # pull full text for better German/sales detection (slower)
-MAX_DESCRIPTION_FETCH = 60  # cap detail calls per run
+# English-only mode needs the full text of every posting to judge its language.
+MAX_DESCRIPTION_FETCH = 300 if getattr(config, "ENGLISH_ONLY", False) else 60
 
 
 def collect():
@@ -73,6 +74,20 @@ def collect():
     n_searches += len(config.UNIVERSITY_PORTALS)
     print(f"  [portals] total -> {len(portal_jobs):>3} student roles (unique total: {len(by_id)})")
     store.set_last_run("uni_portals")
+
+    # --- Company job boards (Greenhouse / Lever / Ashby / Personio) ---------
+    boards = getattr(config, "COMPANY_BOARDS", [])
+    if boards:
+        cb_window = store.window_days("company_boards", first_run_default=config.ONLY_LAST_DAYS)
+        cb = company_boards.search(boards, config.NEARBY_TOWNS, include_remote=config.INCLUDE_REMOTE,
+                                   include_other_cities=getattr(config, "INCLUDE_OTHER_CITIES", False),
+                                   since_days=cb_window)
+        for j in cb:
+            if j["id"] not in by_id:
+                by_id[j["id"]] = j
+        n_searches += len(boards)
+        print(f"  [boards] {len(boards)} company boards ({cb_window}d) -> {len(cb):>3} student roles (unique total: {len(by_id)})")
+        store.set_last_run("company_boards")
 
     return list(by_id.values()), n_searches
 
@@ -127,7 +142,7 @@ def main():
     # summary breakdown
     from collections import Counter
     prios = Counter(j.get("priority") for j in shown)
-    print("Priority breakdown:", {k: prios[k] for k in ("P1", "P2", "P3", "P4", "P5") if prios.get(k)})
+    print("Priority breakdown:", {k: prios[k] for k in ("P1", "P2", "P3", "P4", "P5", "P6") if prios.get(k)})
     print("Done.")
 
 
